@@ -23,19 +23,19 @@ app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-    res.render('home');
+    res.render('home', { title: 'Home' });
 });
 
 app.get('/organizations', (req, res) => {
-    res.render('organizations');
+    res.render('organizations', { title: 'Organizations' });
 });
 
 app.get('/service-projects', (req, res) => {
-    res.render('service-projects');
+    res.render('service-projects', { title: 'Service Projects' });
 });
 
-app.get("/categories", (req, res) => {
-    res.render("categories");
+app.get('/categories', (req, res) => {
+    res.render('categories', { title: 'Categories' });
 });
 
 app.listen(PORT, () => {

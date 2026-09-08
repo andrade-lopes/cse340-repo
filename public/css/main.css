@@ -1,27 +1,184 @@
-html,
+/* =========================================
+   CSE340 Project - Professional Stylesheet
+   ========================================= */
+
+/* ---------- Base ---------- */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
 body {
-    background-color: lightblue;
-    font-family: Arial, sans-serif;
     margin: 0;
-    padding: 20px;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.6;
+    color: #1f2937;
+    background-color: #f4f7fb;
+}
+
+/* ---------- Header ---------- */
+
+header {
+    background-color: #16324f;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+nav {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
 }
 
 nav ul {
-    list-style-type: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
     padding: 0;
+    list-style: none;
 }
 
 nav li {
-    display: inline;
-    margin-right: 15px;
+    margin: 0;
 }
 
 nav a {
+    display: block;
+    padding: 1rem 1.25rem;
+    color: #ffffff;
+    font-weight: 600;
     text-decoration: none;
-    color: #333;
-    font-weight: bold;
+    border-radius: 0.35rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-nav a:hover {
-    color: #0066cc;
+nav a:hover,
+nav a:focus {
+    background-color: #24527a;
+    color: #ffffff;
+}
+
+nav a:focus-visible {
+    outline: 3px solid #f4c95d;
+    outline-offset: 2px;
+}
+
+/* ---------- Main Content ---------- */
+
+main {
+    width: min(100% - 2rem, 1100px);
+    min-height: 70vh;
+    margin: 2rem auto;
+    padding: 2.5rem;
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+h1 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: #16324f;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.2;
+}
+
+h2,
+h3 {
+    color: #24527a;
+}
+
+p {
+    max-width: 75ch;
+}
+
+/* ---------- Lists ---------- */
+
+main ul {
+    max-width: 700px;
+    margin: 1.5rem auto;
+    padding: 0;
+    list-style: none;
+}
+
+main li {
+    margin-bottom: 0.75rem;
+    padding: 1rem 1.25rem;
+    background-color: #eef4f8;
+    border-left: 4px solid #24527a;
+    border-radius: 0.35rem;
+}
+
+/* ---------- Footer ---------- */
+
+footer {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    text-align: center;
+    color: #ffffff;
+    background-color: #16324f;
+}
+
+footer p {
+    max-width: none;
+    margin: 0;
+}
+
+/* ---------- Responsive Design ---------- */
+
+@media (max-width: 700px) {
+    nav ul {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
+        padding: 0.75rem 0;
+    }
+
+    nav a {
+        padding: 0.75rem 1rem;
+        text-align: center;
+    }
+
+    main {
+        width: min(100% - 1rem, 1100px);
+        margin: 1rem auto;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 400px) {
+    main {
+        padding: 1rem;
+    }
+
+    nav {
+        padding: 0 0.75rem;
+    }
+
+    nav a {
+        font-size: 0.95rem;
+    }
+}
+
+/* ---------- Reduced Motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    nav a {
+        transition: none;
+    }
 }
