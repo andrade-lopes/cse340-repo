@@ -1,6 +1,7 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import pool from './database/index.js';
 
 // Define the application environment
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
@@ -37,6 +38,8 @@ app.get('/service-projects', (req, res) => {
 app.get('/categories', (req, res) => {
     res.render('categories', { title: 'Categories' });
 });
+
+
 
 app.listen(PORT, () => {
     console.log(`Server is running at http://127.0.0.1:${PORT}`);
