@@ -1,13 +1,27 @@
 <%- include('partials/header') %>
 
     <main>
-        <h1>Organizations</h1>
+        <h1>
+            <%= title %>
+        </h1>
 
         <section>
             <h2>Community Organizations</h2>
-            <p>Learn more about organizations serving our community.</p>
-        </section>
 
+            <p>Learn more about organizations serving our community.</p>
+
+            <ul>
+                <% organizations.forEach(organization=> { %>
+                    <li>
+                        <img src="/images/<%= organization.logo_filename %>" alt="<%= organization.name %> logo">
+                        <strong>
+                            <%= organization.name %>
+                        </strong>:
+                        <%= organization.contact_email %>
+                    </li>
+                    <% }); %>
+            </ul>
+        </section>
     </main>
 
     <%- include('partials/footer') %>
