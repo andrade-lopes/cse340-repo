@@ -1,0 +1,390 @@
+CSE340 W02 Coaching Session Transcript
+Student: José Lopes
+Course: CSE340 Web Backend Development
+
+============================================================
+COACHING SESSION
+============================================================
+
+AI Coach:
+
+Welcome! Just to be clear from the start, this is a coaching session, not a test. It is perfectly okay—and even encouraged—to say 'I don't know' or 'I made a mistake.' That's the fastest way we'll learn today.
+
+I’m your supportive, non-judgmental Learning Coach and Software Mentor for this Week 02 session.
+
+José Lopes, are you ready to begin by telling me your name and briefly describing what your CSE340 project does?
+
+------------------------------------------------------------
+
+José Lopes:
+
+My name is José Lopes. My CSE340 project is a service project website. It helps users find organizations and service projects in different categories, such as Environmental, Educational, Community Service, and Health and Wellness. The project uses Node.js and Express for the server side, EJS for the views, and PostgreSQL for the database.
+
+------------------------------------------------------------
+
+AI Coach:
+
+That is a clear overview, José. You have identified the main parts of your application and how they work together.
+
+Let’s begin with Topic 1: Relational Database Design and Structure.
+
+In your project, the `organization` table stores organizations, while the `service_project` table stores service projects. A service project is connected to an organization through `organization_id`.
+
+Please paste the relevant SQL code that creates these two tables (including the foreign key), and then explain in your own words why you designed the relationship this way.
+
+------------------------------------------------------------
+
+José Lopes:
+
+CREATE TABLE organization (
+    organization_id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    description TEXT NOT NULL,
+    contact_email VARCHAR(255) NOT NULL,
+    logo_filename VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE service_project (
+    project_id SERIAL PRIMARY KEY,
+    organization_id INTEGER NOT NULL,
+    title VARCHAR(150) NOT NULL,
+    description TEXT NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    date DATE NOT NULL,
+    FOREIGN KEY (organization_id)
+        REFERENCES organization(organization_id)
+);
+
+I designed this as a one-to-many relationship between `organization` and `service_project`. Each organization can run multiple service projects, but each individual project belongs to exactly one organization — so it didn't make sense to model this as many-to-many.
+
+I put the foreign key `organization_id` on the `service_project` table, referencing `organization_id` in the `organization` table. That's the standard way to represent a one-to-many relationship in a relational database: the 'many' side (projects) holds the reference to the 'one' side (the organization that owns them).
+
+I made `organization_id` `NOT NULL` because every service project has to be tied to a real organization — a project shouldn't be able to exist without one. This also lets me do simple JOIN queries, like pulling all projects for a given organization, or showing the organization's name and contact info alongside each project listing, which is exactly what the site needs to do when a user browses by category or by org.
+
+------------------------------------------------------------
+
+AI Coach:
+
+Excellent, José. Your explanation shows that you understand not only what the foreign key does, but also why the relationship belongs on the `service_project` table. Your explanation of `NOT NULL` is also important because it helps enforce the data relationship.
+
+For the required SQL query, please paste the JOIN query from your project that retrieves the service projects together with their organization names, and explain what information the query returns.
+
+------------------------------------------------------------
+
+José Lopes:
+
+const getAllProjects = async () => {
+    const query = `
+        SELECT
+            sp.project_id,
+            sp.organization_id,
+            sp.title,
+            sp.description,
+            sp.location,
+            sp.date,
+            o.name AS organization_name
+        FROM service_project AS sp
+        JOIN organization AS o
+            ON sp.organization_id = o.organization_id
+        ORDER BY sp.date;
+    `;
+
+    const result = await db.query(query);
+
+    return result.rows;
+}
+
+What it does: It selects columns from `service_project` (aliased `sp`) and joins them with `organization` (aliased `o`) on the foreign key relationship `sp.organization_id = o.organization_id`. For each project, it returns the project's own fields (id, title, description, location, date) plus `o.name` renamed as `organization_name` — so the caller gets a flat row that already has the organization's name attached, no second query needed. Results are ordered by date, which makes sense for a service-project listing (soonest first).
+
+------------------------------------------------------------
+
+AI Coach:
+
+Very good, José. You clearly explained the purpose of the `JOIN`, the table aliases, the foreign-key relationship, and why ordering by date is useful for the website.
+
+That completes Topic 1: Relational Database Design and Structure.
+
+Now let's move to Topic 2: Server-Side Data Access Logic (Node.js).
+
+Please paste the Node.js code that connects your application to PostgreSQL and executes the database query (for example, the relevant function from `src/models/db.js`), and explain how the data moves from the database back to your application.
+
+------------------------------------------------------------
+
+José Lopes:
+
+import { Pool } from 'pg';
+
+/**
+ * Connection pool for PostgreSQL database.
+ *
+ * A connection pool maintains a set of reusable database connections
+ * to avoid the overhead of creating new connections for each request.
+ * This improves performance and reduces load on the database server.
+ *
+ * Uses a connection string from environment variables for simplified setup.
+ * The connection string format is:
+ * postgresql://username:password@host:port/database
+ */
+
+const pool = new Pool({
+    connectionString: process.env.DB_URL,
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
+
+/**
+ * Common SSL Issue:
+ *
+ * You may encounter SSL connection errors depending on your operating system, Node.js
+ * version, or PostgreSQL server settings. If you have confirmed your credentials are
+ * correct but still see SSL errors, try updating the 'ssl' property in the Pool
+ * configuration above to:
+ *
+ * ssl: {
+ *     rejectUnauthorized: false
+ * }
+ */
+
+/**
+ * Since we will modify the normal pool object in development mode, we need to create and
+ * export a reference to the pool object. This allows us to use the same name for the
+ * export regardless of whether we are in development or production mode.
+ */
+
+let db = null;
+
+if (process.env.NODE_ENV === 'development' && process.env.ENABLE_SQL_LOGGING === 'true') {
+
+    /**
+     * In development mode, we wrap the pool to provide query logging.
+     * This helps with debugging by showing all executed queries in the console.
+     *
+     * The wrapper also adds timing information to help identify slow queries
+     * and tracks the number of rows affected by each query.
+     */
+
+    db = {
+        async query(text, params) {
+            try {
+                const start = Date.now();
+                const res = await pool.query(text, params);
+                const duration = Date.now() - start;
+                console.log('Executed query:', {
+                    text: text.replace(/\s+/g, ' ').trim(),
+                    duration: `${duration}ms`,
+                    rows: res.rowCount
+                });
+                return res;
+            } catch (error) {
+                console.error('Error in query:', {
+                    text: text.replace(/\s+/g, ' ').trim(),
+                    error: error.message
+                });
+                throw error;
+            }
+        },
+
+        async close() {
+            await pool.end();
+        }
+
+    };
+} else {
+
+    // In production, export the pool directly without logging overhead
+    db = pool;
+}
+
+/**
+ * Tests the database connection by executing a simple query.
+ */
+
+const testConnection = async () => {
+    try {
+        const result = await db.query('SELECT NOW() as current_time');
+        console.log('Database connection successful:', result.rows[0].current_time);
+        return true;
+    } catch (error) {
+        console.error('Database connection failed:', error.message);
+        throw error;
+    }
+};
+
+export { db as default, testConnection };
+
+What it does:
+
+This module sets up the actual PostgreSQL connection and exports a `db` object that the rest of the app (like `getAllOrganizations` and `getAllProjects`) uses to run queries.
+
+- It creates a `Pool` from the `pg` library, using a connection string stored in the `DB_URL` environment variable. A pool manages a set of reusable connections rather than opening a new one for every request, which is more efficient.
+- SSL is configured with `rejectUnauthorized: false`, which is a common workaround for cloud-hosted Postgres providers (like Render or Heroku) that use self-signed certificates — it tells Node not to reject the connection over that.
+- There's conditional logic: if `NODE_ENV` is `development` and `ENABLE_SQL_LOGGING` is `'true'`, `db` becomes a wrapper object around the pool that logs every query's text, execution time, and row count — useful for debugging. Otherwise (production), `db` is just the raw `pool` object itself, so there's no extra overhead.
+- `testConnection()` is a simple sanity check — it runs `SELECT NOW()` to confirm the app can actually reach the database, and is called once at server startup (back in your `app.listen` callback).
+
+------------------------------------------------------------
+
+AI Coach:
+
+Excellent, José. You explained the important server-side data-access concepts: the PostgreSQL connection pool, environment variables, SSL, development logging, error handling, and the role of `testConnection()`.
+
+You also correctly identified the benefit of keeping database connection logic in a separate module: other parts of the application can use `db.query()` without needing to know how the PostgreSQL connection is configured.
+
+To complete Topic 2, explain in your own words why it is useful to keep the database connection logic in `db.js` instead of putting the PostgreSQL connection code directly inside every model or route.
+
+------------------------------------------------------------
+
+José Lopes:
+
+I kept all the PostgreSQL connection logic in one file, `db.js`, instead of repeating it in every model or route, for a few reasons:
+
+Single source of truth. The connection pool is only created once, in one place. If I put `new Pool({...})` inside every model file, I'd end up creating multiple pools across the app, which wastes resources and defeats the whole point of pooling — reusing a limited set of connections efficiently.
+
+Separation of concerns. My model files, like `organizations.js` and `projects.js`, shouldn't need to know how the app connects to the database — just that they can call `db.query()` and get rows back. That keeps each model focused on its own SQL logic rather than mixing in connection setup, environment variable handling, and SSL configuration.
+
+Easier maintenance. If I ever need to change something about the connection — swap the SSL settings, change the environment variable name, add retry logic, or add logging (which I actually did, with the development-mode query logger) — I only have to change it in one place. If the connection code were duplicated across every model, I'd have to find and update it everywhere, and it would be easy to miss one and introduce inconsistent behavior.
+
+Consistency in behavior. Because every model imports the same `db` object, they all get identical behavior automatically — the same pooling, the same SSL config, and in development, the same query logging. That consistency would be hard to guarantee if each file configured its own connection independently.
+
+Testability. Centralizing the connection also makes it easier to swap in a mock or test database later, since there's only one export to substitute instead of hunting through every model file.
+
+------------------------------------------------------------
+
+AI Coach:
+
+Excellent explanation, José. You covered separation of concerns, reuse, maintenance, consistency, resource management, and testability. That demonstrates a strong understanding of why the database module is separate from the models and routes.
+
+That completes Topic 2: Server-Side Data Access Logic (Node.js).
+
+Now let's move to Topic 3: Express Server Logic and Routing.
+
+Please paste the `/service-projects` route from your `server.js` file, and explain what happens when a user visits `/service-projects` in the browser.
+
+------------------------------------------------------------
+
+José Lopes:
+
+app.get('/service-projects', async (req, res) => {
+
+    const projects = await getAllProjects();
+
+    const title = 'Service Projects';
+
+    res.render('service-projects', { title, projects });
+
+});
+
+When a user navigates to `/service-projects` in their browser, the browser sends a GET request to my Express server. Express matches that request against my defined routes and finds this handler registered for the `/service-projects` path.
+
+Because the handler is `async`, it calls `await getAllProjects()`, which runs my model function from `projects.js`. That function executes the JOIN query against PostgreSQL — pulling each service project along with its organization's name — and the app pauses at that `await` until the database responds with the result rows.
+
+Once the data comes back, it's stored in the `projects` variable as an array of row objects. I also set a `title` variable to `'Service Projects'`, which I use for things like the page's `<title>` tag or heading.
+
+Then `res.render('service-projects', { title, projects })` tells Express to render the `service-projects.ejs` view, passing in `title` and `projects` as local variables the template can access. EJS compiles that template into HTML — looping over `projects` to generate a list or grid of project entries, showing things like the project title, description, location, date, and the organization name pulled in from the join. Express sends the resulting HTML back to the browser as the response, and the browser renders the finished page for the user to see.
+
+------------------------------------------------------------
+
+AI Coach:
+
+Excellent, José. You described the complete request flow accurately: the browser sends a GET request, Express matches the route, `getAllProjects()` retrieves the data, and `res.render()` passes that data to the EJS template before the generated HTML is returned to the browser.
+
+You also correctly explained why the route is `async`: it needs to wait for the database operation to finish before rendering the page.
+
+That completes Topic 3: Express Server Logic and Routing.
+
+Now let's move to Topic 4: Client-Side Rendering (EJS Templates).
+
+Please paste the part of your `views/service-projects.ejs` file that loops through `projects` and displays the project title and organization name, and explain how the data from `res.render()` becomes visible in the HTML page.
+
+------------------------------------------------------------
+
+José Lopes:
+
+<ul>
+    <% projects.forEach(project => { %>
+        <li>
+            <h3>
+                <%= project.title %>
+            </h3>
+
+            <p>
+                <strong>Organization:</strong>
+                <%= project.organization_name %>
+            </p>
+        </li>
+    <% }); %>
+</ul>
+
+When my route handler calls `res.render('service-projects', { title, projects })`, Express hands those two variables — `title` and `projects` — to the EJS templating engine along with the path to the `.ejs` file. EJS then processes the template as a mix of static HTML and embedded JavaScript.
+
+There are two kinds of EJS tags at work here. The `<% %>` scriptlet tags run raw JavaScript without outputting anything directly — that's what I use for the `projects.forEach(...)` loop, which iterates over the array of project objects I got back from the database. Inside that loop, the `<%= %>` tags do output a value into the HTML, HTML-escaped for safety — so `<%= project.title %>` prints that project's title, and `<%= project.organization_name %>` prints the organization name that came from the JOIN query in my model.
+
+So for every object in the `projects` array, EJS generates one `<li>` block with that project's title and organization name, repeating the loop body once per row. Once EJS finishes evaluating the whole template, it produces a single complete HTML string. Express takes that string and sends it back to the browser as the HTTP response body, and the browser parses and renders it as the visible page — so the user sees a list item for every service project, each showing its title and the organization running it.
+
+------------------------------------------------------------
+
+AI Coach:
+
+Excellent, José. Your explanation clearly connects the entire data flow:
+
+PostgreSQL → Node.js model → Express route → EJS template → HTML → browser
+
+You also correctly explained the difference between `<% %>` for executing JavaScript and `<%= %>` for outputting escaped values.
+
+To finish Topic 4, explain why using `<%= project.title %>` is safer than using `<%- project.title %>` when displaying data that comes from the database.
+
+------------------------------------------------------------
+
+José Lopes:
+
+EJS gives you two different tags for outputting a value into the page, and they behave very differently when it comes to safety:
+
+- `<%= %>` escapes the output. Before inserting the value into the HTML, EJS converts special characters like `<`, `>`, `&`, and quotes into their HTML entity equivalents (`&lt;`, `&gt;`, `&amp;`, etc.).
+- `<%- %>` outputs the value raw, unescaped — exactly as-is, with no conversion.
+
+This matters because `project.title` comes from the database, and ultimately that data originated from user input somewhere — whoever created that organization or project record typed it in. If someone entered a title like:
+
+<script>alert('hacked')</script>
+
+Using `<%- project.title %>` would insert that raw string directly into the HTML, and the browser would actually parse it as a `<script>` tag and execute it. That's a classic stored XSS (Cross-Site Scripting) vulnerability — malicious script gets stored in the database and then runs in every other user's browser when they view that page.
+
+Using `<%= project.title %>` instead converts those characters to entities, so the browser displays the text `<script>alert('hacked')</script>` literally as visible text on the page rather than executing it as code.
+
+The safe default is to always use `<%= %>` for any data that came from user input or the database. `<%- %>` should only be used deliberately, for content I trust and control myself — like injecting a partial template (`<%- include('partials/header') %>`), which is actually the one place I did use it in this file, since that's my own trusted file path, not user-supplied data, not database output.
+
+------------------------------------------------------------
+
+AI Coach:
+
+Excellent, José. That is a strong explanation of HTML escaping and stored XSS. You correctly identified why `<%= %>` is the safer default for database values and why `<%- %>` should be used deliberately for trusted HTML such as your EJS partials.
+
+That completes Topic 4: Client-Side Rendering (EJS Templates).
+
+We have now covered all four required topics:
+
+1. Relational Database Design and Structure — tables, one-to-many relationship, foreign key, and JOIN query.
+2. Server-Side Data Access Logic (Node.js) — PostgreSQL connection pool, `db.query()`, and data retrieval.
+3. Express Server Logic and Routing — `/service-projects` route and `res.render()`.
+4. Client-Side Rendering (EJS) — data flow into the template, loops, output tags, and HTML escaping.
+
+You have also shared meaningful code snippets for each topic and explained the decisions behind your implementation.
+
+To conclude the coaching session, briefly describe one thing you understand better now about how data moves through your CSE340 application from the database to the user's browser.
+
+------------------------------------------------------------
+
+José Lopes:
+
+I understand better now how data actually moves from the database to the screen. My model function runs a SQL query and gets back rows from PostgreSQL. Those rows get passed into the route in `server.js`, which sends them to the EJS view using `res.render()`. The view then loops through the data and uses `<%= %>` to safely display it as HTML, which is what the user finally sees in their browser. Seeing it as one connected path — database → model → route → view → browser — makes it a lot easier to figure out where something went wrong if a page doesn't show the right data.
+
+------------------------------------------------------------
+
+AI Coach:
+
+Excellent, José. That is a strong conclusion because you now understand the application as a complete data flow rather than as separate pieces of code.
+
+The Week 02 coaching session is complete. You covered all four required topics, shared code for each one, and explained your implementation decisions in your own words.
+
+============================================================
+END OF TRANSCRIPT
+============================================================
