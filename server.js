@@ -4,6 +4,8 @@ import path from 'path';
 import pool from './database/index.js';
 import { testConnection } from './src/models/db.js';
 import { getAllOrganizations } from './src/models/organizations.js';
+import { getAllProjects } from './src/models/projects.js';
+
 
 // Define the application environment
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
@@ -36,19 +38,27 @@ app.get('/organizations', async (req, res) => {
     res.render('organizations', { title, organizations });
 });
 
-app.get('/service-projects', (req, res) => {
-    res.render('service-projects', { title: 'Service Projects' });
+app.get('/service-projects', async (req, res) => {
+    const projects = await getAllProjects();
+    const title = 'Service Projects';
+
+    res.render('service-projects', { title, projects });
 });
 
 app.get('/categories', (req, res) => {
     res.render('categories', { title: 'Categories' });
 });
 
-
+const projects = await getAllProjects();
+console.log(projects);
 
 app.listen(PORT, async () => {
     try {
         await testConnection();
+
+        const projects = await getAllProjects();
+        console.log('Service projects:', projects);
+
         console.log(`Server is running at http://127.0.0.1:${PORT}`);
         console.log(`Environment: ${NODE_ENV}`);
     } catch (error) {
