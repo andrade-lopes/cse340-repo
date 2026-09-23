@@ -51,6 +51,18 @@ app.use((req, res, next) => {
     next();
 });
 
+console.log('Registered routes:');
+
+router.stack.forEach((layer) => {
+    if (layer.route) {
+        const methods = Object.keys(layer.route.methods)
+            .join(', ')
+            .toUpperCase();
+
+        console.log(`${methods} ${layer.route.path}`);
+    }
+});
+
 // Use the imported router to handle routes
 app.use(router);
 
