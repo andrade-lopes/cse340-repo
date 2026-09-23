@@ -45,6 +45,12 @@ app.use((req, res, next) => {
     next();
 });
 
+// Temporary routing debug
+app.use((req, res, next) => {
+    console.log('ROUTER DEBUG:', req.method, req.originalUrl, req.path);
+    next();
+});
+
 // Use the imported router to handle routes
 app.use(router);
 
