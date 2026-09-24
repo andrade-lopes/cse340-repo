@@ -16,11 +16,6 @@ router.get('/organizations', showOrganizationsPage);
 router.get('/service-projects', showProjectsPage);
 router.get('/categories', showCategoriesPage);
 
-router.use('/organization/:id', (req, res, next) => {
-    console.log('ORGANIZATION ROUTER MATCHED:', req.params.id);
-    next();
-});
-
 // Route for organization details page
 router.get('/organization/:id', showOrganizationDetailsPage);
 
