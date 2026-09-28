@@ -1,5 +1,20 @@
 import db from './db.js';
 
+// Retrieve all categories
+const getAllCategories = async () => {
+    const query = `
+        SELECT
+            category_id,
+            name
+        FROM category
+        ORDER BY name;
+    `;
+
+    const result = await db.query(query);
+
+    return result.rows;
+};
+
 // Retrieve a single category by its ID
 const getCategoryDetails = async (categoryId) => {
     const query = `
@@ -60,6 +75,7 @@ const getServiceProjectsByCategoryId = async (categoryId) => {
 
 // Export the model functions
 export {
+    getAllCategories,
     getCategoryDetails,
     getCategoriesByServiceProjectId,
     getServiceProjectsByCategoryId

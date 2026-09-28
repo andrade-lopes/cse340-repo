@@ -115,4 +115,84 @@ VALUES
  'Help organize a community event connecting volunteers with local organizations.',
  'Central Community Hall',
  '2026-11-04');
- 
+
+-- ========================================
+-- Category Table
+-- ========================================
+CREATE TABLE category (
+    category_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- ========================================
+-- Insert sample data: Categories
+-- ========================================
+INSERT INTO category (name)
+VALUES
+('Environmental'),
+('Educational'),
+('Community Service'),
+('Health and Wellness');
+
+-- ========================================
+-- Project Category Table
+-- ========================================
+CREATE TABLE project_category (
+    project_id INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+
+    PRIMARY KEY (project_id, category_id),
+
+    FOREIGN KEY (project_id)
+        REFERENCES service_project(project_id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (category_id)
+        REFERENCES category(category_id)
+        ON DELETE CASCADE
+);
+
+-- ========================================
+-- Insert sample data: Project Categories
+-- ========================================
+INSERT INTO project_category (project_id, category_id)
+VALUES
+(1,  (SELECT category_id FROM category WHERE name = 'Community Service')),
+
+(2,  (SELECT category_id FROM category WHERE name = 'Community Service')),
+(2,  (SELECT category_id FROM category WHERE name = 'Health and Wellness')),
+
+(3,  (SELECT category_id FROM category WHERE name = 'Community Service')),
+(3,  (SELECT category_id FROM category WHERE name = 'Environmental')),
+
+(4,  (SELECT category_id FROM category WHERE name = 'Educational')),
+
+(5,  (SELECT category_id FROM category WHERE name = 'Community Service')),
+(5,  (SELECT category_id FROM category WHERE name = 'Health and Wellness')),
+
+(6,  (SELECT category_id FROM category WHERE name = 'Environmental')),
+
+(7,  (SELECT category_id FROM category WHERE name = 'Environmental')),
+
+(8,  (SELECT category_id FROM category WHERE name = 'Educational')),
+(8,  (SELECT category_id FROM category WHERE name = 'Environmental')),
+
+(9,  (SELECT category_id FROM category WHERE name = 'Community Service')),
+(9,  (SELECT category_id FROM category WHERE name = 'Health and Wellness')),
+
+(10, (SELECT category_id FROM category WHERE name = 'Educational')),
+(10, (SELECT category_id FROM category WHERE name = 'Environmental')),
+
+(11, (SELECT category_id FROM category WHERE name = 'Community Service')),
+(11, (SELECT category_id FROM category WHERE name = 'Health and Wellness')),
+
+(12, (SELECT category_id FROM category WHERE name = 'Community Service')),
+(12, (SELECT category_id FROM category WHERE name = 'Health and Wellness')),
+
+(13, (SELECT category_id FROM category WHERE name = 'Community Service')),
+(13, (SELECT category_id FROM category WHERE name = 'Environmental')),
+
+(14, (SELECT category_id FROM category WHERE name = 'Community Service')),
+
+(15, (SELECT category_id FROM category WHERE name = 'Community Service')),
+(15, (SELECT category_id FROM category WHERE name = 'Educational'));
