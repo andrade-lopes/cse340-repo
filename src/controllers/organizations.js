@@ -1,5 +1,5 @@
 // Import the organization model
-import { getAllOrganizations, getOrganizationDetails } from '../models/organizations.js';
+import { getAllOrganizations, getOrganizationDetails, createOrganization } from '../models/organizations.js';
 import { getProjectsByOrganizationId } from '../models/projects.js';
 
 // Define the organizations page controller
@@ -25,5 +25,28 @@ const showOrganizationDetailsPage = async (req, res) => {
     });
 };
 
+const showNewOrganizationForm = (req, res) => {
+    const title = 'Add New Organization';
+
+    res.render('new-organization', { title });
+};
+
+const processNewOrganizationForm = async (req, res) => {
+    const { name, description, contactEmail } = req.body;
+
+    const logoFilename = 'placeholder-logo.png';
+
+    const organizationId = await createOrganization(
+        name,
+        description,
+        contactEmail,
+        logoFilename
+    );
+
+    res.redirect(`/organization/${organizationId}`);
+};
+
 // Export the controller function
-export { showOrganizationsPage, showOrganizationDetailsPage };
+export {
+    showOrganizationsPage, showOrganizationDetailsPage, showNewOrganizationForm, processNewOrganizationForm
+};

@@ -5,6 +5,11 @@ import path from 'path';
 import pool from './database/index.js';
 import { testConnection } from './src/models/db.js';
 import router from './src/routes.js';
+import session from 'express-session';
+import {
+    flashMiddleware,
+    flashViewMiddleware
+} from './middleware/flash.js';
 
 // Define the application environment
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
@@ -16,6 +21,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 /**
  * Configure Express middleware
@@ -44,6 +52,21 @@ app.use((req, res, next) => {
     res.locals.NODE_ENV = NODE_ENV;
     next();
 });
+
+// Configure in-memory session storage
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'cse340-development-secret',
+    resave: false,
+    saveUninitialized: false
+}));
+
+app.use(flashMiddleware);
+app.use(flashViewMiddleware);
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Use the imported router to handle routes
 app.use(router);
