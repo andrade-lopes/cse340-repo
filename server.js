@@ -9,7 +9,7 @@ import session from 'express-session';
 import {
     flashMiddleware,
     flashViewMiddleware
-} from './middleware/flash.js';
+} from './src/middleware/flash.js';
 
 // Define the application environment
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';

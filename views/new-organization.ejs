@@ -5,24 +5,38 @@
             <%= title %>
         </h1>
 
-        <form action="/new-organization" method="POST">
-            <div class="form-group">
-                <label for="name">Organization Name</label>
-                <input type="text" id="name" name="name" />
+        <% if (typeof errors !=='undefined' && errors.length> 0) { %>
+            <div class="form-errors">
+                <h2>Please correct the following errors:</h2>
+                <ul>
+                    <% errors.forEach(error=> { %>
+                        <li>
+                            <%= error.msg %>
+                        </li>
+                        <% }); %>
+                </ul>
             </div>
+            <% } %>
 
-            <div class="form-group">
-                <label for="description">Description</label>
-                <textarea id="description" name="description"></textarea>
-            </div>
+                <form action="/new-organization" method="POST">
+                    <div class="form-group">
+                        <label for="name">Organization Name</label>
+                        <input type="text" id="name" name="name" value="<%= formData?.name || '' %>" />
+                    </div>
 
-            <div class="form-group">
-                <label for="contactEmail">Contact Email</label>
-                <input type="text" id="contactEmail" name="contactEmail" />
-            </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description"><%= formData?.description || '' %></textarea>
+                    </div>
 
-            <button type="submit">Create Organization</button>
-        </form>
+                    <div class="form-group">
+                        <label for="contactEmail">Contact Email</label>
+                        <input type="text" id="contactEmail" name="contactEmail"
+                            value="<%= formData?.contactEmail || '' %>" />
+                    </div>
+
+                    <button type="submit">Create Organization</button>
+                </form>
     </main>
 
     <%- include('partials/footer') %>
