@@ -10,21 +10,29 @@ import { getProjectsByOrganizationId } from '../models/projects.js';
 import { body, validationResult } from 'express-validator';
 
 // Define validation and sanitization rules for organization form
+// Define validation and sanitization rules for organization form
 const organizationValidation = [
     body('name')
         .trim()
+        .escape()
         .notEmpty()
         .withMessage('Organization name is required')
         .bail()
         .isLength({ min: 3, max: 150 })
-        .withMessage('Organization name must be between 3 and 150 characters'),
+        .withMessage(
+            'Organization name must be between 3 and 150 characters'
+        ),
 
     body('description')
         .trim()
+        .escape()
         .notEmpty()
         .withMessage('Organization description is required')
+        .bail()
         .isLength({ max: 500 })
-        .withMessage('Organization description cannot exceed 500 characters'),
+        .withMessage(
+            'Organization description cannot exceed 500 characters'
+        ),
 
     body('contactEmail')
         .trim()
@@ -33,7 +41,7 @@ const organizationValidation = [
         .bail()
         .isEmail()
         .withMessage('Please provide a valid email address')
-        .normalizeEmail(),
+        .normalizeEmail()
 ];
 
 // Show all organizations
@@ -73,18 +81,20 @@ const showNewOrganizationForm = (req, res) => {
 
 // Process new organization form
 const processNewOrganizationForm = async (req, res) => {
-    const errors = validationResult(req);
+    // Check for validation errors
+    const results = validationResult(req);
 
-    if (!errors.isEmpty()) {
-        return res.status(400).render('new-organization', {
-            title: 'Add New Organization',
-            errors: errors.array(),
-            formData: req.body
+    if (!results.isEmpty()) {
+        // Validation failed - loop through errors
+        results.array().forEach((error) => {
+            req.flash('error', error.msg);
         });
+
+        // Redirect back to the new organization form
+        return res.redirect('/new-organization');
     }
 
     const { name, description, contactEmail } = req.body;
-
     const logoFilename = 'placeholder-logo.png';
 
     const organizationId = await createOrganization(
@@ -94,10 +104,7 @@ const processNewOrganizationForm = async (req, res) => {
         logoFilename
     );
 
-    req.flash(
-        'success',
-        'Organization created successfully!'
-    );
+    req.flash('success', 'Organization added successfully!');
 
     res.redirect(`/organization/${organizationId}`);
 };
