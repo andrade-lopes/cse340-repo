@@ -2,7 +2,8 @@
 import {
     getAllOrganizations,
     getOrganizationDetails,
-    createOrganization
+    createOrganization,
+    updateOrganization
 } from '../models/organizations.js';
 
 import { getProjectsByOrganizationId } from '../models/projects.js';
@@ -79,6 +80,20 @@ const showNewOrganizationForm = (req, res) => {
     });
 };
 
+// Show edit organization form with existing data
+const showEditOrganizationForm = async (req, res) => {
+    const organizationId = req.params.id;
+
+    const organizationDetails = await getOrganizationDetails(organizationId);
+
+    const title = 'Edit Organization';
+
+    res.render('edit-organization', {
+        title,
+        organizationDetails
+    });
+};
+
 // Process new organization form
 const processNewOrganizationForm = async (req, res) => {
     // Check for validation errors
@@ -109,11 +124,47 @@ const processNewOrganizationForm = async (req, res) => {
     res.redirect(`/organization/${organizationId}`);
 };
 
+const processEditOrganizationForm = async (req, res) => {
+    const organizationId = req.params.id;
+
+    // Check for validation errors
+    const results = validationResult(req);
+
+    if (!results.isEmpty()) {
+        results.array().forEach((error) => {
+            req.flash('error', error.msg);
+        });
+
+        return res.redirect(`/edit-organization/${organizationId}`);
+    }
+
+    const {
+        name,
+        description,
+        contactEmail,
+        logoFilename
+    } = req.body;
+
+    await updateOrganization(
+        organizationId,
+        name,
+        description,
+        contactEmail,
+        logoFilename
+    );
+
+    req.flash('success', 'Organization updated successfully!');
+
+    res.redirect(`/organization/${organizationId}`);
+};
+
 // Export controller functions and validation rules
 export {
     showOrganizationsPage,
     showOrganizationDetailsPage,
     showNewOrganizationForm,
     processNewOrganizationForm,
-    organizationValidation
+    showEditOrganizationForm,
+    organizationValidation,
+    processEditOrganizationForm
 };
