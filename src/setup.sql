@@ -24,7 +24,7 @@ VALUES
 CREATE TABLE service_project (
     project_id SERIAL PRIMARY KEY,
     organization_id INTEGER NOT NULL,
-    title VARCHAR(150) NOT NULL,
+    title VARCHAR(200) NOT NULL,
     description TEXT NOT NULL,
     location VARCHAR(255) NOT NULL,
     date DATE NOT NULL,
