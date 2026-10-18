@@ -22,7 +22,9 @@ import {
 
 import {
     showCategoriesPage,
-    showCategoryDetailsPage
+    showCategoryDetailsPage,
+    showAssignCategoriesForm,
+    processAssignCategoriesForm
 } from './controllers/categories.js';
 
 import { testErrorPage } from './controllers/errors.js';
@@ -56,6 +58,17 @@ router.post('/new-project', projectValidation, processNewProjectForm);
 
 // Route for service project details page
 router.get('/project/:id', showProjectDetailsPage);
+
+// Routes to handle assigning categories to a project
+router.get(
+    '/assign-categories/:projectId',
+    showAssignCategoriesForm
+);
+
+router.post(
+    '/assign-categories/:projectId',
+    processAssignCategoriesForm
+);
 
 router.get('/categories', showCategoriesPage);
 
