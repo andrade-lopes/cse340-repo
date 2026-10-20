@@ -9,15 +9,18 @@
             <%= project.title %>
         </h2>
 
-        <p><strong>Description:</strong>
+        <p>
+            <strong>Description:</strong>
             <%= project.description %>
         </p>
 
-        <p><strong>Date:</strong>
+        <p>
+            <strong>Date:</strong>
             <%= project.date %>
         </p>
 
-        <p><strong>Location:</strong>
+        <p>
+            <strong>Location:</strong>
             <%= project.location %>
         </p>
 
@@ -25,6 +28,12 @@
             <strong>Organization:</strong>
             <a href="/organization/<%= project.organization_id %>">
                 <%= project.organization_name %>
+            </a>
+        </p>
+
+        <p>
+            <a href="/edit-project/<%= project.project_id %>">
+                Edit Project
             </a>
         </p>
 
