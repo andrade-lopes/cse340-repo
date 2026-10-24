@@ -38,27 +38,25 @@ app.set('view engine', 'ejs');
 // Tell Express where to find your templates
 app.set('views', path.join(__dirname, 'views'));
 
-// Middleware to log all incoming requests
-app.use((req, res, next) => {
-    if (NODE_ENV === 'development') {
-        console.log(`${req.method} ${req.url}`);
-    }
-
-    next();
-});
-
-// Middleware to make NODE_ENV available to all templates
-app.use((req, res, next) => {
-    res.locals.NODE_ENV = NODE_ENV;
-    next();
-});
-
 // Configure in-memory session storage
 app.use(session({
     secret: process.env.SESSION_SECRET || 'cse340-development-secret',
     resave: false,
     saveUninitialized: false
 }));
+
+// Middleware to log all incoming requests
+app.use((req, res, next) => {
+    res.locals.isLoggedIn = false;
+
+    if (req.session && req.session.user) {
+        res.locals.isLoggedIn = true;
+    }
+
+    res.locals.NODE_ENV = NODE_ENV;
+    next();
+});
+
 
 app.use(flashMiddleware);
 app.use(flashViewMiddleware);
