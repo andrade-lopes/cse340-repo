@@ -3,6 +3,10 @@
     <main>
         <h1>Welcome to my CSE340 Project</h1>
         <p>Hello from Express and EJS!</p>
+        <% if (isLoggedIn) { %>
+            <p><a href="/dashboard">My Dashboard</a></p>
+            <% } %>
+
     </main>
 
     <%- include('partials/footer') %>
